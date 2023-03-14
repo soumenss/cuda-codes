@@ -2,45 +2,45 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-#define THREADS_PER_BLOCK 256
+#define THREAD_BLOCK_SIZE 256
 
-__global__ void histogram(int* input, int* output, int inputSize, int binNum)
+__global__ void histogram(int* input, int* output, int VecDim, int BinNum)
 {
-    // Allocate shared memory for the bins
-    __shared__ int bins[256];
+    // Allocate shared memory for the s_hist
+    __shared__ int s_hist[256];
 
-    // Initialize shared memory bins to 0
-    for (int i = threadIdx.x; i < binNum; i += blockDim.x)
+    // Initialize shared memory s_hist to 0
+    for (int i = threadIdx.x; i < BinNum; i += blockDim.x)
     {
-        bins[i] = 0;
+        s_hist[i] = 0;
     }
     __syncthreads();
 
     // Compute the histogram
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tid < inputSize)
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < VecDim)
     {
-        int bin = input[tid] % binNum;
-        atomicAdd(&bins[bin], 1);
+        int bin = input[idx] % BinNum;
+        atomicAdd(&s_hist[bin], 1);
     }
     __syncthreads();
 
     // Copy the histogram from shared memory to global memory
-    for (int i = threadIdx.x; i < binNum; i += blockDim.x)
+    for (int i = threadIdx.x; i < BinNum; i += blockDim.x)
     {
-        atomicAdd(&output[i], bins[i]);
+        atomicAdd(&output[i], s_hist[i]);
     }
 }
 
 int main(int argc, char** argv)
 {
     // Parse input parameters
-    int vecDim = atoi(argv[1]);
-    int binNum = atoi(argv[2]);
+    int vecDim = atoi(argv[2]);
+    int BinNum = atoi(argv[1]);
 
     // Allocate host memory
     int* h_input = (int*)malloc(vecDim * sizeof(int));
-    int* h_output = (int*)malloc(binNum * sizeof(int));
+    int* h_output = (int*)malloc(BinNum * sizeof(int));
 
     // Generate random input vector
     for (int i = 0; i < vecDim; i++)
@@ -51,27 +51,28 @@ int main(int argc, char** argv)
     // Allocate device memory
     int* d_input, *d_output;
     cudaMalloc(&d_input, vecDim * sizeof(int));
-    cudaMalloc(&d_output, binNum * sizeof(int));
+    cudaMalloc(&d_output, BinNum * sizeof(int));
 
     // Copy host memory to device
     cudaMemcpy(d_input, h_input, vecDim * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemset(d_output, 0, binNum * sizeof(int));
+    cudaMemset(d_output, 0, BinNum * sizeof(int));
 
     // Initialize thread block and kernel grid dimensions
-    dim3 blockDim(THREADS_PER_BLOCK, 1, 1);
-    dim3 gridDim((vecDim + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK, 1, 1);
+    dim3 blockDim(THREAD_BLOCK_SIZE, 1, 1);
+    dim3 gridDim((vecDim + THREAD_BLOCK_SIZE - 1) / THREAD_BLOCK_SIZE, 1, 1);
 
     // Invoke CUDA kernel
-    histogram<<<gridDim, blockDim>>>(d_input, d_output, vecDim, binNum);
+    histogram<<<gridDim, blockDim>>>(d_input, d_output, vecDim, BinNum);
 
     // Copy results from device to host
-    cudaMemcpy(h_output, d_output, binNum * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_output, d_output, BinNum * sizeof(int), cudaMemcpyDeviceToHost);
 
     // Print results
-    for (int i = 0; i < binNum; i++)
+    for (int i = 0; i < BinNum; i++)
     {
-        printf("bin %d: %d\n", i, h_output[i]);
+        printf("%d ", h_output[i]);
     }
+    printf("\n");
 
     // Deallocate device memory
     cudaFree(d_input);
