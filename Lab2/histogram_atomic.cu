@@ -35,6 +35,7 @@ int main(int argc, char** argv)
     int bin_num = atoi(argv[1]);
 
 
+    // allocate host memory for inputs
     int* h_in = (int*)malloc(vec_dim * sizeof(int));
     int* h_hist = (int*)malloc(bin_num * sizeof(int));
 
@@ -47,30 +48,33 @@ int main(int argc, char** argv)
     int* d_in;
     int* d_hist;
 
+    // allocate device memory
     cudaMalloc((void**)&d_in, vec_dim * sizeof(int));
     cudaMalloc((void**)&d_hist, bin_num * sizeof(int));
 
+    // copy nputs from host memory to device
     cudaMemcpy(d_in, h_in, vec_dim * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_hist, h_hist, bin_num * sizeof(int), cudaMemcpyHostToDevice);
 
     int block_dim = 256;
     int grid_dim = (vec_dim + block_dim - 1) / block_dim;
 
+    // invoke CUDA kernel
     histogram_kernel<<<grid_dim, block_dim, bin_num * sizeof(int)>>>(d_in, d_hist, bin_num, vec_dim);
 
+    // copy results from device to host
     cudaMemcpy(h_hist, d_hist, bin_num * sizeof(int), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < bin_num; i++) {
-        printf("Bin %d: %d\n", i, h_hist[i]);
-    }
-
+    // print results
     for (int i = 0; i < bin_num; i++) {
         printf("%d ", h_hist[i]);
     }
 
+    // deallocate device memory
     cudaFree(d_in);
     cudaFree(d_hist);
 
+    // deallocate host memory
     free(h_in);
     free(h_hist);
 
