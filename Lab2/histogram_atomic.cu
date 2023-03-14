@@ -69,6 +69,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < bin_num; i++) {
         printf("%d ", h_hist[i]);
     }
+    printf("\n");
 
     // deallocate device memory
     cudaFree(d_in);
