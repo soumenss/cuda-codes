@@ -31,8 +31,8 @@ __global__ void histogram_kernel(int* d_in, int* d_hist, int bin_num, int vec_di
 int main(int argc, char** argv)
 {
 
-    int vec_dim = atoi(argv[1]);
-    int bin_num = atoi(argv[2]);
+    int vec_dim = atoi(argv[2]);
+    int bin_num = atoi(argv[1]);
 
 
     int* h_in = (int*)malloc(vec_dim * sizeof(int));
