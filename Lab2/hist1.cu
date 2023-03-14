@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     // Print results
     for (int i = 0; i < BinNum; i++)
     {
-        //printf("%d ", h_output[i]);
+        printf("%d ", h_output[i]);
     }
     printf("\n");
 
