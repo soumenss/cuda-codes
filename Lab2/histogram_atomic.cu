@@ -9,8 +9,9 @@ __global__ void histogram_kernel(int* d_in, int* d_hist, int bin_num, int vec_di
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     int stride = blockDim.x * gridDim.x;
 
-    for (int i = threadIdx.x; i < bin_num; i += blockDim.x)
+    for (int i = threadIdx.x; i < bin_num; i += blockDim.x) {
         s_hist[i] = 0;
+    }
 
     __syncthreads();
 
@@ -22,8 +23,9 @@ __global__ void histogram_kernel(int* d_in, int* d_hist, int bin_num, int vec_di
 
     __syncthreads();
 
-    for (int i = threadIdx.x; i < bin_num; i += blockDim.x)
+    for (int i = threadIdx.x; i < bin_num; i += blockDim.x) {
         atomicAdd(&d_hist[i], s_hist[i]);
+    }
 }
 
 int main(int argc, char** argv)
@@ -36,8 +38,9 @@ int main(int argc, char** argv)
     int* h_in = (int*)malloc(vec_dim * sizeof(int));
     int* h_hist = (int*)malloc(bin_num * sizeof(int));
 
-    for (int i = 0; i < vec_dim; i++)
+    for (int i = 0; i < vec_dim; i++) {
         h_in[i] = rand() % 1024;
+    }
 
     memset(h_hist, 0, bin_num * sizeof(int));
 
@@ -57,8 +60,13 @@ int main(int argc, char** argv)
 
     cudaMemcpy(h_hist, d_hist, bin_num * sizeof(int), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < bin_num; i++)
+    for (int i = 0; i < bin_num; i++) {
         printf("Bin %d: %d\n", i, h_hist[i]);
+    }
+
+    for (int i = 0; i < bin_num; i++) {
+        printf("%d ", h_hist[i]);
+    }
 
     cudaFree(d_in);
     cudaFree(d_hist);
