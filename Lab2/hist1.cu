@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-#define THREAD_BLOCK_SIZE 64
+#define THREAD_BLOCK_SIZE 16
 
 __global__ void histogram(int* input, int* output, int VecDim, int BinNum)
 {
