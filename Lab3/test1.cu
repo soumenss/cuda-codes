@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-#define DIMX 1024
-#define DIMY 1024
+#define DIMX 64
+#define DIMY 64
 #define DIMK 3
 
 texture<float, 2, cudaReadModeElementType> texImage;
