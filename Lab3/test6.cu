@@ -24,10 +24,10 @@ __global__ void convolution2D_kernel(float* output, const float* input, const fl
 
     // Load shared memory for input and kernel
     if (x_in < dimx && y_in < dimy) {
-        shared_input[threadIdx.x + KERNEL_SIZE / 2][threadIdx.y + KERNEL_SIZE / 2] = input[x_in + y_in * DIMX];
+        shared_input[threadIdx.x + KERNEL_SIZE / 2][threadIdx.y + KERNEL_SIZE / 2] = input[x_in + y_in * dimx];
     }
     if (threadIdx.x < KERNEL_SIZE && threadIdx.y < KERNEL_SIZE) {
-        shared_kernel[threadIdx.x][threadIdx.y] = kernel[threadIdx.x + threadIdx.y * kernel_size];
+        shared_kernel[threadIdx.x][threadIdx.y] = kernel[threadIdx.x + threadIdx.y * dimk];
     }
 
     // Synchronize threads to ensure shared memory is loaded
