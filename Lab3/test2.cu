@@ -4,9 +4,9 @@
 #include <device_launch_parameters.h>
 
 // Define the input, kernel, and output dimensions
-#define DIM_X 512
-#define DIM_Y 512
-#define DIM_K 3
+// #define DIM_X 512
+// #define DIM_Y 512
+// #define DIM_K 3
 
 // Define the input and kernel arrays as textures
 texture<float, 2, cudaReadModeElementType> input_tex;
@@ -56,7 +56,12 @@ __global__ void convolutionKernel(float* input, float* kernel, float* output, in
     output[globalIdy * dimX + globalIdx] = result;
 }
 
-int main() {
+int main(int argc, char** argv) {
+
+    int DIM_X = atoi(argv[1]);
+    int DIM_Y = atoi(argv[2]);
+    int DIM_K = atoi(argv[3]);
+
     // Generate random input and kernel arrays
     float* input = (float*)malloc(sizeof(float) * DIM_X * DIM_Y);
     float* kernel = (float*)malloc(sizeof(float) * DIM_K * DIM_K);
