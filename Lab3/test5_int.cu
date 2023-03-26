@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
     printf("Input:\n");
     for (int i = 0; i < input_height; i++) {
         for (int j = 0; j < input_width; j++) {
-            printf("%d", input[i * input_width + j]);
+            printf("%d  ", input[i * input_width + j]);
         }
         printf("\n");
     }
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     printf("\nKernel:\n");
     for (int i = 0; i < kernel_size; i++) {
         for (int j = 0; j < kernel_size; j++) {
-            printf("%d", kernel[i * kernel_size + j]);
+            printf("%d  ", kernel[i * kernel_size + j]);
         }
         printf("\n");
     }
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     printf("\nOutput:\n");
     for (int i = 0; i < input_height; i++) {
         for (int j = 0; j < input_width; j++) {
-            printf("%d", output[i * input_width + j]);
+            printf("%d  ", output[i * input_width + j]);
         }
         printf("\n");
     }
