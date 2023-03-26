@@ -59,10 +59,10 @@ int main(int argc, char** argv) {
     // Initialize host memory with random values
     // srand(time(NULL));
     for (int i = 0; i < input_width * input_height; i++) {
-        input[i] = (int) rand() / RAND_MAX * 15.0;
+        input[i] = (int) rand() / RAND_MAX * 5;
     }
     for (int i = 0; i < kernel_size * kernel_size; i++) {
-        kernel[i] = (int) rand() / RAND_MAX * 15.0;
+        kernel[i] = (int) rand() / RAND_MAX * 5;
     }
 
     // Allocate device memory
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     printf("Input:\n");
     for (int i = 0; i < input_height; i++) {
         for (int j = 0; j < input_width; j++) {
-            printf("%6.1f", input[i * input_width + j]);
+            printf("%d", input[i * input_width + j]);
         }
         printf("\n");
     }
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
     printf("\nKernel:\n");
     for (int i = 0; i < kernel_size; i++) {
         for (int j = 0; j < kernel_size; j++) {
-            printf("%6.1f", kernel[i * kernel_size + j]);
+            printf("%d", kernel[i * kernel_size + j]);
         }
         printf("\n");
     }
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
     printf("\nOutput:\n");
     for (int i = 0; i < input_height; i++) {
         for (int j = 0; j < input_width; j++) {
-            printf("%6.1f", output[i * input_width + j]);
+            printf("%d", output[i * input_width + j]);
         }
         printf("\n");
     }
