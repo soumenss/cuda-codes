@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
     cudaFree(d_kernel);
     cudaFree(d_output);
 
-    / Print the input and output arrays
+    // Print the input and output arrays
     printf("Input:\n");
     for (int i = 0; i < input_height; i++) {
         for (int j = 0; j < input_width; j++) {
