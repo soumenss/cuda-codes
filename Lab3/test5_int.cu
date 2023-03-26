@@ -59,10 +59,11 @@ int main(int argc, char** argv) {
     // Initialize host memory with random values
     // srand(time(NULL));
     for (int i = 0; i < input_width * input_height; i++) {
-        input[i] = (int) rand() / RAND_MAX * 5;
+        //input[i] = (int) rand() / RAND_MAX * 5;
+        input[i] = (int) rand() / % (5+1);
     }
     for (int i = 0; i < kernel_size * kernel_size; i++) {
-        kernel[i] = (int) rand() / RAND_MAX * 5;
+        kernel[i] = (int) rand() / % (5+1);
     }
 
     // Allocate device memory
