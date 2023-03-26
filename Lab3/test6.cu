@@ -6,13 +6,16 @@
 #define BLOCK_SIZE 16
 #define KERNEL_SIZE 3
 
+
 __global__ void convolution2D_kernel(float* output, const float* input, const float* kernel,
                                     int dimx, int dimy, int dimk) {
+
 
 
     // Declare shared memory
     __shared__ float shared_input[BLOCK_SIZE + KERNEL_SIZE - 1][BLOCK_SIZE + KERNEL_SIZE - 1];
     __shared__ float shared_kernel[KERNEL_SIZE][KERNEL_SIZE];
+
 
 
     // Calculate input and output indices
@@ -23,6 +26,7 @@ __global__ void convolution2D_kernel(float* output, const float* input, const fl
 
 
     // Load shared memory for input and kernel
+
     if (x_in < dimx && y_in < dimy) {
         shared_input[threadIdx.x + KERNEL_SIZE / 2][threadIdx.y + KERNEL_SIZE / 2] = input[x_in + y_in * dimx];
     }
@@ -30,10 +34,12 @@ __global__ void convolution2D_kernel(float* output, const float* input, const fl
         shared_kernel[threadIdx.x][threadIdx.y] = kernel[threadIdx.x + threadIdx.y * dimk];
     }
 
+
     // Synchronize threads to ensure shared memory is loaded
     __syncthreads();
 
     // Calculate output value
+
     float output_value = 0.0;
     if (x_out >= 0 && x_out < dimx && y_out >= 0 && y_out < dimy) {
         for (int i = 0; i < KERNEL_SIZE; i++) {
@@ -97,7 +103,7 @@ int main(int argc, char** argv) {
 
 
 
-
+/*
     // Print the input and output arrays
     printf("Input:\n");
     for (int i = 0; i < DIMY; i++) {
@@ -123,7 +129,7 @@ int main(int argc, char** argv) {
         printf("\n");
     }
 
-
+*/
 
     // Free host memory
     free(input);
