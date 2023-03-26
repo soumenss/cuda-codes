@@ -1,8 +1,8 @@
 #include <cuda_runtime.h>
-#include <device_launch_parameters.h>
+// #include <device_launch_parameters.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+// #include <time.h>
 
 #define BLOCK_SIZE 16
 #define KERNEL_SIZE 3
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     float* output = (float*) malloc(input_width * input_height * sizeof(float));
 
     // Initialize host memory with random values
-    srand(time(NULL));
+    // srand(time(NULL));
     for (int i = 0; i < input_width * input_height; i++) {
         input[i] = (float) rand() / RAND_MAX * 15.0;
     }
