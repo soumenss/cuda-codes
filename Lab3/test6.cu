@@ -3,7 +3,7 @@
 #include <stdlib.h>
 // #include <time.h>
 
-#define BLOCK_SIZE 64
+#define BLOCK_SIZE 32
 #define KERNEL_SIZE 3
 
 
