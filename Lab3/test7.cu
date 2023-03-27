@@ -3,9 +3,9 @@
 #include <stdlib.h>
 // #include <time.h>
 
-// #define BLOCK_SIZE 16
+#define BLOCK_SIZE 16
 // #define KERNEL_SIZE 3
-#define TILE_WIDTH 16
+#define TILE_WIDTH 3
 #define MAX_KERNEL_RADIUS 3
 
 //__global__ void convolution2D_kernel(float* output, const float* input, const float* kernel,
