@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     cudaFree(d_kernel);
     cudaFree(d_output);
 
-
+/*
 
 
     // Print the input and output arrays
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         printf("\n");
     }
 
-
+*/
 
     // Free host memory
     free(input);
