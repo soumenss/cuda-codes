@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 
 
 
-/*
+
     // Print the input and output arrays
     printf("Input:\n");
     for (int i = 0; i < DIMY; i++) {
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         printf("\n");
     }
 
-*/
+
 
     // Free host memory
     free(input);
