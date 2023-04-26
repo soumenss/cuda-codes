@@ -82,14 +82,20 @@ int main(int argc, char** argv) {
 
     // Invoke CUDA kernel
     convolution2D_kernel<<<grid_dim, block_dim>>>(d_output, input_width, input_height, d_input, input_width, input_height, d_kernel, kernel_size);
+    
 
     // Copy results from device to host
     cudaMemcpy(output, d_output, input_width * input_height * sizeof(float), cudaMemcpyDeviceToHost);
+
+
 
     // Deallocate device memory
     cudaFree(d_input);
     cudaFree(d_kernel);
     cudaFree(d_output);
+
+
+
 
     // Print the input and output arrays
     printf("Input:\n");
