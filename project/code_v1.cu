@@ -3,6 +3,9 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <cstdlib>
+#include <ctime>
+
 // Define image dimensions
 #define WIDTH 1024
 #define HEIGHT 1024
