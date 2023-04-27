@@ -13,38 +13,27 @@ __device__ unsigned char median(unsigned char* neighborhood, int size)
     return neighborhood[size / 2];
 }
 
-__global__ void median_filter_kernel(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
+__global__ void median_filter_kernel(unsigned char* output, int width, int height, int kernel_size)
 {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (row >= kernel_size / 2 && row < height - kernel_size / 2 && col >= kernel_size / 2 && col < width - kernel_size / 2)
     {
-        // Allocate memory for the neighborhood on the device
-        unsigned char* d_neighborhood;
-        cudaMalloc(&d_neighborhood, kernel_size * kernel_size * sizeof(unsigned char));
-
-        // Copy the neighborhood from the input to the device
+        // Extract the neighborhood
+        unsigned char neighborhood[kernel_size * kernel_size];
         for (int i = 0; i < kernel_size; i++)
         {
-            int input_row = row - kernel_size / 2 + i;
             for (int j = 0; j < kernel_size; j++)
             {
-                int input_col = col - kernel_size / 2 + j;
-                int input_index = input_row * width + input_col;
-                int neighborhood_index = i * kernel_size + j;
-                cudaMemcpy(&d_neighborhood[neighborhood_index], &input[input_index], sizeof(unsigned char), cudaMemcpyHostToDevice);
+                neighborhood[i * kernel_size + j] = tex2D<unsigned char>(input_texture, col - kernel_size / 2 + j, row - kernel_size / 2 + i);
             }
         }
 
-        // Compute the median of the neighborhood on the device
-        output[row * width + col] = median(d_neighborhood, kernel_size * kernel_size);
-
-        // Free the memory for the neighborhood on the device
-        cudaFree(d_neighborhood);
+        // Compute the median of the neighborhood
+        output[row * width + col] = median(neighborhood, kernel_size * kernel_size);
     }
 }
-
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
@@ -55,25 +44,28 @@ void median_filter(const unsigned char* input, unsigned char* output, int width,
     size_t output_size = output_width * output_height * sizeof(unsigned char);
 
     // Allocate memory on the device
-    unsigned char* d_input, * d_output;
-    cudaMalloc(&d_input, input_size);
+    unsigned char* d_output;
     cudaMalloc(&d_output, output_size);
 
-    // Copy the input to the device
-    cudaMemcpy(d_input, input, input_size, cudaMemcpyHostToDevice);
+    // Copy the input to a texture on the device
+    cudaArray* d_input_array;
+    cudaMallocArray(&d_input_array, &input_texture.channelDesc, width, height);
+    cudaMemcpyToArray(d_input_array, 0, 0, input, input_size, cudaMemcpyHostToDevice);
+    cudaBindTextureToArray(input_texture, d_input_array);
 
     // Define the grid and block sizes
     dim3 block_size(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid_size((output_width + BLOCK_SIZE - 1) / BLOCK_SIZE, (output_height + BLOCK_SIZE - 1) / BLOCK_SIZE);
 
     // Call the kernel
-    median_filter_kernel<<<grid_size, block_size>>>(d_input, d_output, width, height, kernel_size);
+    median_filter_kernel<<<grid_size, block_size>>>(d_output, output_width, output_height, kernel_size);
 
     // Copy the output to the host
     cudaMemcpy(output, d_output, output_size, cudaMemcpyDeviceToHost);
 
     // Free the memory on the device
-    cudaFree(d_input);
+    cudaUnbindTexture(input_texture);
+    cudaFreeArray(d_input_array);
     cudaFree(d_output);
 }
 
