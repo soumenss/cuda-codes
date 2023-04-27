@@ -4,53 +4,34 @@
 
 #define BLOCK_SIZE 32
 
-void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
+unsigned char median(unsigned char* neighborhood, int size)
 {
-    int padding_size = kernel_size / 2;
-
-    // Add padding to the input image
-    unsigned char* padded_input = new unsigned char[(width + 2 * padding_size) * (height + 2 * padding_size)];
-    for (int i = 0; i < height + 2 * padding_size; i++)
-    {
-        for (int j = 0; j < width + 2 * padding_size; j++)
-        {
-            if (i < padding_size || i >= height + padding_size || j < padding_size || j >= width + padding_size)
-            {
-                padded_input[i * (width + 2 * padding_size) + j] = 0;
-            }
-            else
-            {
-                padded_input[i * (width + 2 * padding_size) + j] = input[(i - padding_size) * width + (j - padding_size)];
-            }
-        }
-    }
-
-    // Apply the median filter
-    for (int i = 0; i < height - kernel_size + 1; i++)
-    {
-        for (int j = 0; j < width - kernel_size + 1; j++)
-        {
-            // Extract the neighborhood
-            unsigned char* neighborhood = new unsigned char[kernel_size * kernel_size];
-            for (int ii = 0; ii < kernel_size; ii++)
-            {
-                for (int jj = 0; jj < kernel_size; jj++)
-                {
-                    neighborhood[ii * kernel_size + jj] = padded_input[(i + ii) * (width + 2 * padding_size) + (j + jj)];
-                }
-            }
-
-            // Compute the median of the neighborhood
-            output[i * (width - kernel_size + 1) + j] = median(neighborhood, kernel_size * kernel_size);
-
-            // Free memory allocated for neighborhood
-            delete[] neighborhood;
-        }
-    }
-
-    // Free memory allocated for padded input
-    delete[] padded_input;
+    std::sort(neighborhood, neighborhood + size);
+    return neighborhood[size / 2];
 }
+
+__global__ void median_filter_kernel(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
+{
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= kernel_size / 2 && row < height - kernel_size / 2 && col >= kernel_size / 2 && col < width - kernel_size / 2)
+    {
+        // Extract the neighborhood
+        unsigned char neighborhood[kernel_size * kernel_size];
+        for (int i = 0; i < kernel_size; i++)
+        {
+            for (int j = 0; j < kernel_size; j++)
+            {
+                neighborhood[i * kernel_size + j] = input[(row - kernel_size / 2 + i) * width + col - kernel_size / 2 + j];
+            }
+        }
+
+        // Compute the median of the neighborhood
+        output[row * width + col] = median(neighborhood, kernel_size * kernel_size);
+    }
+}
+
 
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
