@@ -21,7 +21,7 @@ __global__ void median_filter_kernel(const unsigned char* input, unsigned char* 
     if (row >= kernel_size / 2 && row < height - kernel_size / 2 && col >= kernel_size / 2 && col < width - kernel_size / 2)
     {
         // Extract the neighborhood
-        unsigned char* neighborhood = new unsigned char[kernel_size * kernel_size];
+        unsigned char neighborhood[25];
         for (int i = 0; i < kernel_size; i++)
         {
             for (int j = 0; j < kernel_size; j++)
@@ -32,11 +32,10 @@ __global__ void median_filter_kernel(const unsigned char* input, unsigned char* 
 
         // Compute the median of the neighborhood
         output[row * width + col] = median(neighborhood, kernel_size * kernel_size);
-
-        // Free the dynamically allocated memory
-        delete[] neighborhood;
     }
 }
+
+
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
