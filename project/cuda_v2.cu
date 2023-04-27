@@ -7,7 +7,7 @@
 
 #define BLOCK_SIZE 32
 
-unsigned char median(unsigned char* neighborhood, int size)
+__device__ unsigned char median(unsigned char* neighborhood, int size)
 {
     thrust::sort(thrust::device, neighborhood, neighborhood + size);
     return neighborhood[size / 2];
