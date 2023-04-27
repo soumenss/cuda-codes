@@ -39,7 +39,7 @@ __global__ void median_filter_kernel(const unsigned char* input, unsigned char* 
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
-    int padding_size = kernel_size / 2;
+    // int padding_size = kernel_size / 2;
     int output_width = width - kernel_size + 1;
     int output_height = height - kernel_size + 1;
     size_t input_size = width * height * sizeof(unsigned char);
