@@ -62,7 +62,7 @@ int main()
     {
         for (int x = 0; x < WIDTH; x++)
         {
-            host_image_noisy[y * WIDTH + x] = 0.5;
+            host_image_noisy[y * WIDTH + x] = (float) rand() / RAND_MAX; // 0.5;
         }
     }
 
