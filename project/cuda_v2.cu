@@ -45,7 +45,7 @@ __global__ void median_filter_kernel(const unsigned char* input, unsigned char* 
         output[output_index] = neighborhood[kernel_size * kernel_size / 2];
     }
 
-    delete[] neighborhood;
+    // delete[] neighborhood;
 }
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
