@@ -3,69 +3,73 @@
 #include <vector>
 #include <algorithm>
 
-#include <cuda_runtime.h>
-
-using namespace std;
-
-__global__ void medianFilter(const unsigned char* src, unsigned char* dst, int width, int height) {
+__global__ void median_filter_kernel(unsigned char* input, unsigned char* output, int width, int height, int window_size)
+{
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int radius = window_size / 2;
+    int index = y * width + x;
 
-    if (x >= 1 && y >= 1 && x < width - 1 && y < height - 1) {
-        vector<unsigned char> window;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                window.push_back(src[(y + i) * width + x + j]);
+    if (x < width && y < height)
+    {
+        std::vector<unsigned char> window;
+        for (int i = -radius; i <= radius; ++i)
+        {
+            for (int j = -radius; j <= radius; ++j)
+            {
+                int nx = x + j;
+                int ny = y + i;
+                if (nx >= 0 && ny >= 0 && nx < width && ny < height)
+                {
+                    window.push_back(input[ny * width + nx]);
+                }
             }
         }
-        sort(window.begin(), window.end());
-        dst[y * width + x] = window[4];
-    } else {
-        dst[y * width + x] = src[y * width + x];
+        std::sort(window.begin(), window.end());
+        output[index] = window[window.size() / 2];
     }
 }
 
-int main() {
-    // Load the image file using standard C++ file I/O operations
-    ifstream inFile("noisy_image.raw", ios::binary);
-    if (!inFile.is_open()) {
-        cerr << "Failed to open file." << endl;
-        return 1;
-    }
+int main()
+{
     const int width = 512;
     const int height = 512;
-    vector<unsigned char> inputImage(width * height);
-    inFile.read(reinterpret_cast<char*>(inputImage.data()), inputImage.size());
-    inFile.close();
+    const int window_size = 3;
 
-    // Allocate memory on the GPU
-    unsigned char* devInputImage = nullptr;
-    unsigned char* devOutputImage = nullptr;
-    cudaMalloc(&devInputImage, inputImage.size());
-    cudaMalloc(&devOutputImage, inputImage.size());
+    // Load input image from file
+    std::ifstream file("input.jpg", std::ios::binary);
+    std::vector<unsigned char> input_data(width * height);
+    file.read(reinterpret_cast<char*>(input_data.data()), input_data.size());
+    file.close();
 
-    // Copy the input image to the GPU
-    cudaMemcpy(devInputImage, inputImage.data(), inputImage.size(), cudaMemcpyHostToDevice);
+    // Allocate memory on the device
+    unsigned char* input_device;
+    unsigned char* output_device;
+    cudaMalloc(&input_device, input_data.size());
+    cudaMalloc(&output_device, input_data.size());
 
-    // Compute the block and grid dimensions
-    const dim3 blockDim(16, 16);
-    const dim3 gridDim((width + blockDim.x - 1) / blockDim.x, (height + blockDim.y - 1) / blockDim.y);
+    // Copy input data to device memory
+    cudaMemcpy(input_device, input_data.data(), input_data.size(), cudaMemcpyHostToDevice);
 
-    // Perform the median filter operation
-    medianFilter<<<gridDim, blockDim>>>(devInputImage, devOutputImage, width, height);
+    // Define block and grid sizes
+    dim3 block_size(32, 32);
+    dim3 grid_size((width + block_size.x - 1) / block_size.x, (height + block_size.y - 1) / block_size.y);
 
-    // Copy the output image from the GPU
-    vector<unsigned char> outputImage(width * height);
-    cudaMemcpy(outputImage.data(), devOutputImage, outputImage.size(), cudaMemcpyDeviceToHost);
+    // Launch the kernel
+    median_filter_kernel<<<grid_size, block_size>>>(input_device, output_device, width, height, window_size);
 
-    // Save the denoised image to a file
-    ofstream outFile("denoised_image.raw", ios::binary);
-    outFile.write(reinterpret_cast<const char*>(outputImage.data()), outputImage.size());
-    outFile.close();
+    // Copy output data from device memory
+    std::vector<unsigned char> output_data(width * height);
+    cudaMemcpy(output_data.data(), output_device, output_data.size(), cudaMemcpyDeviceToHost);
 
-    // Free the GPU memory
-    cudaFree(devInputImage);
-    cudaFree(devOutputImage);
+    // Save output image to file
+    std::ofstream out_file("output.jpg", std::ios::binary);
+    out_file.write(reinterpret_cast<char*>(output_data.data()), output_data.size());
+    out_file.close();
+
+    // Free device memory
+    cudaFree(input_device);
+    cudaFree(output_device);
 
     return 0;
 }
