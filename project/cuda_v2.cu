@@ -4,49 +4,54 @@
 
 #define BLOCK_SIZE 32
 
-__global__ void median_filter_kernel(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
+void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
     int padding_size = kernel_size / 2;
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= padding_size && x < width - padding_size && y >= padding_size && y < height - padding_size)
+    // Add padding to the input image
+    unsigned char* padded_input = new unsigned char[(width + 2 * padding_size) * (height + 2 * padding_size)];
+    for (int i = 0; i < height + 2 * padding_size; i++)
     {
-        // unsigned char neighborhood[kernel_size * kernel_size];
-        unsigned char* neighborhood = new unsigned char[kernel_size * kernel_size];
-
-        int input_index, output_index = (y - padding_size) * (width - kernel_size + 1) + (x - padding_size);
-
-        // Get the neighborhood
-        for (int i = -padding_size; i <= padding_size; i++)
+        for (int j = 0; j < width + 2 * padding_size; j++)
         {
-            for (int j = -padding_size; j <= padding_size; j++)
+            if (i < padding_size || i >= height + padding_size || j < padding_size || j >= width + padding_size)
             {
-                input_index = (y + i) * width + x + j;
-                neighborhood[(i + padding_size) * kernel_size + j + padding_size] = input[input_index];
+                padded_input[i * (width + 2 * padding_size) + j] = 0;
+            }
+            else
+            {
+                padded_input[i * (width + 2 * padding_size) + j] = input[(i - padding_size) * width + (j - padding_size)];
             }
         }
-
-        // Apply the median filter
-        for (int i = 0; i < kernel_size * kernel_size; i++)
-        {
-            for (int j = i + 1; j < kernel_size * kernel_size; j++)
-            {
-                if (neighborhood[i] > neighborhood[j])
-                {
-                    unsigned char temp = neighborhood[i];
-                    neighborhood[i] = neighborhood[j];
-                    neighborhood[j] = temp;
-                }
-            }
-        }
-
-        // Write the output
-        output[output_index] = neighborhood[kernel_size * kernel_size / 2];
     }
 
-    // delete[] neighborhood;
+    // Apply the median filter
+    for (int i = 0; i < height - kernel_size + 1; i++)
+    {
+        for (int j = 0; j < width - kernel_size + 1; j++)
+        {
+            // Extract the neighborhood
+            unsigned char* neighborhood = new unsigned char[kernel_size * kernel_size];
+            for (int ii = 0; ii < kernel_size; ii++)
+            {
+                for (int jj = 0; jj < kernel_size; jj++)
+                {
+                    neighborhood[ii * kernel_size + jj] = padded_input[(i + ii) * (width + 2 * padding_size) + (j + jj)];
+                }
+            }
+
+            // Compute the median of the neighborhood
+            output[i * (width - kernel_size + 1) + j] = median(neighborhood, kernel_size * kernel_size);
+
+            // Free memory allocated for neighborhood
+            delete[] neighborhood;
+        }
+    }
+
+    // Free memory allocated for padded input
+    delete[] padded_input;
 }
+
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
