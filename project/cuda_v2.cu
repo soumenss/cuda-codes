@@ -9,7 +9,7 @@
 
 unsigned char median(unsigned char* neighborhood, int size)
 {
-    std::sort(neighborhood, neighborhood + size);
+    thrust::sort(thrust::device, neighborhood, neighborhood + size);
     return neighborhood[size / 2];
 }
 
