@@ -2,6 +2,9 @@
 #include <fstream>
 #include <iostream>
 
+#include <thrust/device_vector.h>
+#include <thrust/sort.h>
+
 #define BLOCK_SIZE 32
 
 unsigned char median(unsigned char* neighborhood, int size)
