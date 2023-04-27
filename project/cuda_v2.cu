@@ -20,20 +20,31 @@ __global__ void median_filter_kernel(const unsigned char* input, unsigned char* 
 
     if (row >= kernel_size / 2 && row < height - kernel_size / 2 && col >= kernel_size / 2 && col < width - kernel_size / 2)
     {
-        // Extract the neighborhood
-        unsigned char neighborhood[kernel_size * kernel_size];
+        // Allocate memory for the neighborhood on the device
+        unsigned char* d_neighborhood;
+        cudaMalloc(&d_neighborhood, kernel_size * kernel_size * sizeof(unsigned char));
+
+        // Copy the neighborhood from the input to the device
         for (int i = 0; i < kernel_size; i++)
         {
+            int input_row = row - kernel_size / 2 + i;
             for (int j = 0; j < kernel_size; j++)
             {
-                neighborhood[i * kernel_size + j] = input[(row - kernel_size / 2 + i) * width + col - kernel_size / 2 + j];
+                int input_col = col - kernel_size / 2 + j;
+                int input_index = input_row * width + input_col;
+                int neighborhood_index = i * kernel_size + j;
+                cudaMemcpy(&d_neighborhood[neighborhood_index], &input[input_index], sizeof(unsigned char), cudaMemcpyHostToDevice);
             }
         }
 
-        // Compute the median of the neighborhood
-        output[row * width + col] = median(neighborhood, kernel_size * kernel_size);
+        // Compute the median of the neighborhood on the device
+        output[row * width + col] = median(d_neighborhood, kernel_size * kernel_size);
+
+        // Free the memory for the neighborhood on the device
+        cudaFree(d_neighborhood);
     }
 }
+
 
 void median_filter(const unsigned char* input, unsigned char* output, int width, int height, int kernel_size)
 {
