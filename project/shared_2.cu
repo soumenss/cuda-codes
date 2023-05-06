@@ -19,7 +19,7 @@
 #define BLOCK_SIZE 16
 
 // Define kernel function to calculate the gradient of an image
-__global__ void gradient(float* image, float* grad_x, float* grad_y, WIDTH, HEIGHT)
+__global__ void gradient(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT)
 {
     __shared__ float shared_image[BLOCK_SIZE][BLOCK_SIZE];
 
@@ -40,7 +40,7 @@ __global__ void gradient(float* image, float* grad_x, float* grad_y, WIDTH, HEIG
 }
 
 // Define kernel function to update the denoised image using the TV regularization technique
-__global__ void update(float* image, float* grad_x, float* grad_y, WIDTH, HEIGHT, LAMBDA, EPSILON)
+__global__ void update(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT, float LAMBDA, float EPSILON)
 {
     __shared__ float shared_image[BLOCK_SIZE][BLOCK_SIZE];
     __shared__ float shared_grad_x[BLOCK_SIZE][BLOCK_SIZE];
