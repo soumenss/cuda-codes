@@ -7,8 +7,8 @@
 #include <ctime>
 
 // Define image dimensions
-#define WIDTH 1024
-#define HEIGHT 1024
+#define WIDTH 512
+#define HEIGHT 512
 
 // Define TV regularization hyperparameters
 #define LAMBDA 0.01
