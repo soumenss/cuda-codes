@@ -16,7 +16,7 @@
 // #define MAX_ITERATIONS 100
 
 // Define block size
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 64
 
 // Define kernel function to calculate the gradient of an image
 __global__ void gradient(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT)
