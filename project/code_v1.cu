@@ -7,16 +7,18 @@
 #include <ctime>
 
 // Define image dimensions
-#define WIDTH 512
-#define HEIGHT 512
+// #define WIDTH 512
+// #define HEIGHT 512
 
 // Define TV regularization hyperparameters
-#define LAMBDA 0.01
-#define EPSILON 0.0001
-#define MAX_ITERATIONS 100
+// #define LAMBDA 0.01
+// #define EPSILON 0.0001
+// #define MAX_ITERATIONS 100
+
+#define BLOCK_SIZE 16
 
 // Define kernel function to calculate the gradient of an image
-__global__ void gradient(float* image, float* grad_x, float* grad_y)
+__global__ void gradient(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -29,7 +31,7 @@ __global__ void gradient(float* image, float* grad_x, float* grad_y)
 }
 
 // Define kernel function to update the denoised image using the TV regularization technique
-__global__ void update(float* image, float* grad_x, float* grad_y)
+__global__ void update(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT, float LAMBDA, float EPSILON)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -43,8 +45,16 @@ __global__ void update(float* image, float* grad_x, float* grad_y)
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    
+    int WIDTH = atoi(argv[1]);
+    int HEIGHT = atoi(argv[2]);
+
+    float LAMBDA = atoi(argv[3]);
+    float EPSILON = atoi(argv[4]);
+    int MAX_ITERATIONS = atoi(argv[5]);
+
     // Initialize host memory for noisy image and denoised image
     float* host_image_noisy = (float*)malloc(WIDTH * HEIGHT * sizeof(float));
     float* host_image_denoised = (float*)malloc(WIDTH * HEIGHT * sizeof(float));
@@ -58,6 +68,7 @@ int main()
 
     // Load noisy image into host memory
     // TODO: Replace with your own image loading code
+    srand(time(NULL));
     for (int y = 0; y < HEIGHT; y++)
     {
         for (int x = 0; x < WIDTH; x++)
@@ -73,21 +84,21 @@ int main()
     cudaMemcpy(device_image_denoised, device_image_noisy, WIDTH * HEIGHT * sizeof(float), cudaMemcpyDeviceToDevice);
 
     // Define block and grid sizes for gradient kernel
-    dim3 block_size_gradient(16, 16);
+    dim3 block_size_gradient(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid_size_gradient((WIDTH + block_size_gradient.x - 1) / block_size_gradient.x, 
                             (HEIGHT + block_size_gradient.y - 1) / block_size_gradient.y);
 
 
     // Define block and grid sizes for update kernel
-    dim3 block_size_update(16, 16);
+    dim3 block_size_update(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid_size_update((WIDTH + block_size_update.x - 1) / block_size_update.x,
                           (HEIGHT + block_size_update.y - 1) / block_size_update.y);
 
     // Denoise image using TV regularization
     for (int i = 0; i < MAX_ITERATIONS; i++)
     {
-        gradient <<< grid_size_gradient, block_size_gradient >>>(device_image_denoised, device_grad_x, device_grad_y);
-        update <<< grid_size_update, block_size_update >>>(device_image_denoised, device_grad_x, device_grad_y);
+        gradient <<< grid_size_gradient, block_size_gradient >>>(device_image_denoised, device_grad_x, device_grad_y, WIDTH, HEIGHT);
+        update <<< grid_size_update, block_size_update >>>(device_image_denoised, device_grad_x, device_grad_y, WIDTH, HEIGHT, LAMBDA, EPSILON);
     }
 
     // Copy denoised image from device memory to host memory

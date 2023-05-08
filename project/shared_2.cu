@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < MAX_ITERATIONS; i++)
     {
         gradient<<<dim_grid, dim_block>>>(device_image_noisy, device_grad_x, device_grad_y, WIDTH, HEIGHT);
-        update<<<dim_grid, dim_block>>>(device_image_denoised, device_grad_x, device_grad_y, WIDTH, HEIGHT, LAMBDA, EPSILON);
+        update<<<dim_grid, dim_block>>>(device_image_noisy, device_grad_x, device_grad_y, WIDTH, HEIGHT, LAMBDA, EPSILON);
 
 
         // Swap noisy and denoised image pointers

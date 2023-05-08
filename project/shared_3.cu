@@ -6,20 +6,23 @@
 #include <cstdlib>
 #include <ctime>
 
+#include <iostream>
+#include <fstream>
+
 // Define image dimensions
-#define WIDTH 12
-#define HEIGHT 12
+// #define WIDTH 512
+// #define HEIGHT 512
 
 // Define TV regularization hyperparameters
-#define LAMBDA 0.01
-#define EPSILON 0.0001
-#define MAX_ITERATIONS 100
+// #define LAMBDA 0.01
+// #define EPSILON 0.0001
+// #define MAX_ITERATIONS 100
 
 // Define block size
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 64
 
 // Define kernel function to calculate the gradient of an image
-__global__ void gradient(float* image, float* grad_x, float* grad_y)
+__global__ void gradient(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT)
 {
     __shared__ float shared_image[BLOCK_SIZE][BLOCK_SIZE];
 
@@ -40,7 +43,7 @@ __global__ void gradient(float* image, float* grad_x, float* grad_y)
 }
 
 // Define kernel function to update the denoised image using the TV regularization technique
-__global__ void update(float* image, float* grad_x, float* grad_y)
+__global__ void update(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT, float LAMBDA, float EPSILON)
 {
     __shared__ float shared_image[BLOCK_SIZE][BLOCK_SIZE];
     __shared__ float shared_grad_x[BLOCK_SIZE][BLOCK_SIZE];
@@ -63,8 +66,15 @@ __global__ void update(float* image, float* grad_x, float* grad_y)
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    
+    int WIDTH = atoi(argv[1]);
+    int HEIGHT = atoi(argv[2]);
+
+    float LAMBDA = atoi(argv[3]);
+    float EPSILON = atoi(argv[4]);
+    int MAX_ITERATIONS = atoi(argv[5]);
 
     // Initialize host memory for noisy image and denoised image
     float* host_image_noisy = (float*)malloc(WIDTH * HEIGHT * sizeof(float));
@@ -94,8 +104,8 @@ int main()
     // Perform TV regularization on the noisy image to obtain denoised image
     for (int i = 0; i < MAX_ITERATIONS; i++)
     {
-        gradient<<<dim_grid, dim_block>>>(device_image_noisy, device_grad_x, device_grad_y);
-        update<<<dim_grid, dim_block>>>(device_image_denoised, device_grad_x, device_grad_y);
+        gradient<<<dim_grid, dim_block>>>(device_image_noisy, device_grad_x, device_grad_y, WIDTH, HEIGHT);
+        update<<<dim_grid, dim_block>>>(device_image_denoised, device_grad_x, device_grad_y, WIDTH, HEIGHT, LAMBDA, EPSILON);
 
 
         // Swap noisy and denoised image pointers
