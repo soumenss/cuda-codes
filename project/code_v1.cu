@@ -15,7 +15,7 @@
 // #define EPSILON 0.0001
 // #define MAX_ITERATIONS 100
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 32
 
 // Define kernel function to calculate the gradient of an image
 __global__ void gradient(float* image, float* grad_x, float* grad_y, int WIDTH, int HEIGHT)
